@@ -1,0 +1,282 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FPP0188fB4v_LjkGQhag.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FPP0188fB4v_LjkU6hag.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZhrib2Bg-4.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZhrib2Bg-4.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZhrib2Bg-4.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-code: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  /* Minimalism tokens (default) */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --bg-surface: #141414;
+  --bg-surface-hover: #1e1e1e;
+  --bg-elevated: #1c1c1c;
+
+  --fg-primary: #fafafa;
+  --fg-secondary: #a0a0a0;
+  --fg-tertiary: #666666;
+  --fg-muted: #444444;
+
+  --border-primary: #222222;
+  --border-secondary: #2a2a2a;
+  --border-hover: #333333;
+
+  --accent-primary: #e8e8e8;
+  --accent-secondary: #888888;
+  --accent-glow: rgba(255, 255, 255, 0.05);
+
+  --success: #4ade80;
+  --danger: #f87171;
+  --warning: #fbbf24;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 20px rgba(255,255,255,0.03);
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --sidebar-width: 48px;
+  --explorer-width: 260px;
+  --header-height: 48px;
+  --terminal-height: 220px;
+}
+
+/* Theme: Maximalism */
+[data-theme="maximalism"] {
+  --bg-primary: #050510;
+  --bg-secondary: #0a0a1a;
+  --bg-tertiary: #0f0f24;
+  --bg-surface: #0d0d1e;
+  --bg-surface-hover: #151530;
+  --bg-elevated: #12122a;
+
+  --fg-primary: #e8e8ff;
+  --fg-secondary: #8888cc;
+  --fg-tertiary: #555588;
+  --fg-muted: #333355;
+
+  --border-primary: #1a1a3a;
+  --border-secondary: #222244;
+  --border-hover: #333366;
+
+  --accent-primary: #7c3aed;
+  --accent-secondary: #a855f7;
+  --accent-glow: rgba(124, 58, 237, 0.15);
+
+  --success: #34d399;
+  --danger: #fb7185;
+  --warning: #fbbf24;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 16px rgba(124, 58, 237, 0.15);
+  --shadow-lg: 0 8px 40px rgba(124, 58, 237, 0.2);
+  --shadow-glow: 0 0 30px rgba(124, 58, 237, 0.1);
+}
+
+/* Theme: Brutalism */
+[data-theme="brutalism"] {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #111111;
+  --bg-surface: #050505;
+  --bg-surface-hover: #1a1a1a;
+  --bg-elevated: #0d0d0d;
+
+  --fg-primary: #ffffff;
+  --fg-secondary: #999999;
+  --fg-tertiary: #555555;
+  --fg-muted: #333333;
+
+  --border-primary: #ffffff;
+  --border-secondary: #666666;
+  --border-hover: #ffffff;
+
+  --accent-primary: #ffffff;
+  --accent-secondary: #cccccc;
+  --accent-glow: rgba(255, 255, 255, 0.08);
+
+  --success: #00ff00;
+  --danger: #ff0000;
+  --warning: #ffff00;
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+
+  --shadow-sm: 3px 3px 0px #ffffff;
+  --shadow-md: 5px 5px 0px #ffffff;
+  --shadow-lg: 8px 8px 0px #ffffff;
+  --shadow-glow: none;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-primary);
+  color: var(--fg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+input, textarea, button, select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Brutalism specific overrides */
+[data-theme="brutalism"] * {
+  font-family: var(--font-code);
+}
+
+[data-theme="brutalism"] .brutalist-border {
+  border: 2px solid var(--border-primary);
+}
+
+[data-theme="brutalism"] .brutalist-shadow {
+  box-shadow: var(--shadow-md);
+}
+
+/* Maximalism gradient animation */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Monaco editor overrides */
+.monaco-editor {
+  border-radius: 0 !important;
+}
+
+.monaco-editor .margin {
+  background: var(--bg-secondary) !important;
+}
+
+.monaco-editor .minimap-slider {
+  background: var(--accent-glow) !important;
+}
+
+.monaco-editor-focused {
+  outline: none !important;
+}
