@@ -7,8 +7,11 @@ import {
   Settings,
   Terminal,
   ChevronDown,
+  Download,
+  Check,
 } from 'lucide-react';
 import { useAppStore } from '@/store';
+import { downloadActiveCppFile } from '@/utils/download';
 
 export function Header() {
   const {
@@ -19,6 +22,7 @@ export function Header() {
   } = useAppStore();
 
   const [runState, setRunState] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
+  const [justDownloaded, setJustDownloaded] = useState(false);
 
   // Delegates to the single store action so RUN behaves identically whether it
   // is triggered here, by Cmd+Enter in Monaco, or from the command palette —
@@ -35,6 +39,17 @@ export function Header() {
 
     setTimeout(() => setRunState('idle'), 2000);
   }, [isRunning]);
+
+  // Writes the live editor text to a .cpp file. Purely client-side, and it does
+  // not touch the editor, the file list or the output panel.
+  const handleDownload = useCallback(() => {
+    const name = downloadActiveCppFile();
+    if (!name) return;
+    setJustDownloaded(true);
+    setTimeout(() => setJustDownloaded(false), 1400);
+  }, []);
+
+  const activeFile = getActiveFile();
 
   return (
     <header
@@ -93,7 +108,7 @@ export function Header() {
             background: 'var(--bg-tertiary)',
           }}
         >
-          {getActiveFile()?.name || 'untitled.cpp'}
+          {activeFile?.name || 'untitled.cpp'}
         </span>
       </div>
 
@@ -131,6 +146,15 @@ export function Header() {
           icon={<Terminal size={15} />}
           label="Terminal"
           onClick={() => toggleTerminal()}
+        />
+
+        {/* Download the current source as a .cpp file */}
+        <HeaderButton
+          icon={justDownloaded ? <Check size={15} /> : <Download size={15} />}
+          label={activeFile ? 'Download C++ file' : 'Download unavailable — no active file'}
+          ariaLabel="Download C++ file"
+          onClick={handleDownload}
+          disabled={!activeFile}
         />
 
         {/* Share */}
@@ -206,17 +230,24 @@ function HeaderButton({
   icon,
   label,
   onClick,
+  ariaLabel,
+  disabled = false,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  /** Screen-reader name when it should differ from the tooltip text. */
+  ariaLabel?: string;
+  disabled?: boolean;
 }) {
   return (
     <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={disabled ? undefined : { scale: 1.05 }}
+      whileTap={disabled ? undefined : { scale: 0.95 }}
       onClick={onClick}
+      disabled={disabled}
       title={label}
+      aria-label={ariaLabel ?? label}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -225,13 +256,17 @@ function HeaderButton({
         height: 32,
         borderRadius: 'var(--radius-sm)',
         color: 'var(--fg-secondary)',
+        opacity: disabled ? 0.4 : 1,
+        cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'color var(--transition-fast), background var(--transition-fast)',
       }}
       onMouseEnter={(e) => {
+        if (disabled) return;
         (e.currentTarget as HTMLElement).style.color = 'var(--fg-primary)';
         (e.currentTarget as HTMLElement).style.background = 'var(--bg-surface-hover)';
       }}
       onMouseLeave={(e) => {
+        if (disabled) return;
         (e.currentTarget as HTMLElement).style.color = 'var(--fg-secondary)';
         (e.currentTarget as HTMLElement).style.background = 'transparent';
       }}

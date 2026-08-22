@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Editor, { type OnMount } from '@monaco-editor/react';
 import { useAppStore } from '@/store';
+import { registerEditorValueGetter } from '@/utils/editorBridge';
 
 /**
  * Completion providers are registered against the *language*, not the editor
