@@ -1,40 +1,15 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useAppStore } from '@/store';
 
 export function useKeyboardShortcuts() {
   const {
     setCommandPaletteOpen,
-    setIsRunning,
     toggleTerminal,
     toggleSidebar,
     setSettingsOpen,
     setStyleSelectorOpen,
-    getActiveFile,
-    addOutput,
     clearOutput,
-    stdin,
   } = useAppStore();
-
-  const handleRun = useCallback(async () => {
-    const file = getActiveFile();
-    if (!file || useAppStore.getState().isRunning) return;
-
-    setIsRunning(true);
-
-    const { CppExecutionService } = await import('@/utils/execution');
-    const result = await CppExecutionService.execute(file.content, stdin);
-
-    const entry = {
-      id: Math.random().toString(36).substring(2, 10),
-      timestamp: Date.now(),
-      command: `./${file.name.replace('.cpp', '')}`,
-      result,
-      status: result.exitCode === 0 ? 'success' as const : 'error' as const,
-    };
-
-    addOutput(entry);
-    setIsRunning(false);
-  }, [getActiveFile, setIsRunning, addOutput, stdin]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -48,11 +23,15 @@ export function useKeyboardShortcuts() {
 
       if (isMod && e.key === 'Enter') {
         e.preventDefault();
-        handleRun();
+        // One shared implementation, so RUN always reveals the output panel.
+        void useAppStore.getState().runCode();
         return;
       }
 
-      if (isMod && e.key === '`') {
+      // e.code is layout-independent, so this fires on the physical ` key
+      // regardless of keyboard layout. Monaco registers the same shortcut
+      // internally (see CodeEditor) for when the editor has focus.
+      if (isMod && e.code === 'Backquote') {
         e.preventDefault();
         toggleTerminal();
         return;
@@ -79,6 +58,7 @@ export function useKeyboardShortcuts() {
 
       if (isMod && e.shiftKey && e.key === 'L') {
         e.preventDefault();
+        // Clears execution output only — files, stdin and editor state persist.
         clearOutput();
         return;
       }
@@ -86,5 +66,5 @@ export function useKeyboardShortcuts() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [handleRun, setCommandPaletteOpen, toggleTerminal, toggleSidebar, setSettingsOpen, setStyleSelectorOpen, clearOutput]);
+  }, [setCommandPaletteOpen, toggleTerminal, toggleSidebar, setSettingsOpen, setStyleSelectorOpen, clearOutput]);
 }

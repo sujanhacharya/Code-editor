@@ -18,11 +18,32 @@ export interface EditorSettings {
   autoSave: boolean;
 }
 
+/**
+ * Distinguishes *why* an execution failed so the UI never shows a
+ * misleading "Network error" for a real compiler error.
+ */
+export type ExecutionPhase =
+  | 'success'
+  | 'compile_error'
+  | 'runtime_error'
+  | 'timeout'
+  | 'network_error';
+
 export interface ExecutionResult {
   stdout: string;
   stderr: string;
   exitCode: number;
   executionTime: number;
+  phase: ExecutionPhase;
+}
+
+/** A single parsed compiler diagnostic, used by the PROBLEMS tab. */
+export interface CompilerDiagnostic {
+  file: string;
+  line: number;
+  column: number;
+  severity: 'error' | 'warning' | 'note';
+  message: string;
 }
 
 export interface OutputEntry {
@@ -45,6 +66,7 @@ export interface LayoutState {
   terminalCollapsed: boolean;
   previousTerminalHeight: number;
   bottomPanel: BottomPanel;
+  activeTerminalTab: BottomPanel;
 }
 
 export interface AppState {

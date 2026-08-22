@@ -2,20 +2,17 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Play,
-  Save,
   Terminal,
   PanelLeftClose,
   Settings,
   Sparkles,
   File,
   Trash2,
-  Type,
   WrapText,
   Map,
   Hash,
 } from 'lucide-react';
 import { useAppStore } from '@/store';
-import { CppExecutionService } from '@/utils/execution';
 
 interface Command {
   id: string;
@@ -36,12 +33,8 @@ export function CommandPalette() {
     setStyleSelectorOpen,
     createFile,
     clearOutput,
-    setIsRunning,
-    getActiveFile,
-    addOutput,
     updateEditorSettings,
     editorSettings,
-    stdin,
   } = useAppStore();
 
   const [query, setQuery] = useState('');
@@ -55,20 +48,10 @@ export function CommandPalette() {
       icon: <Play size={14} />,
       shortcut: '⌘ Enter',
       category: 'Execution',
-      action: async () => {
+      action: () => {
         setCommandPaletteOpen(false);
-        const file = getActiveFile();
-        if (!file) return;
-        setIsRunning(true);
-        const result = await CppExecutionService.execute(file.content, stdin);
-        addOutput({
-          id: Math.random().toString(36).substring(2, 10),
-          timestamp: Date.now(),
-          command: `./${file.name.replace('.cpp', '')}`,
-          result,
-          status: result.exitCode === 0 ? 'success' : 'error',
-        });
-        setIsRunning(false);
+        // Same store action as the RUN button and Cmd+Enter.
+        void useAppStore.getState().runCode();
       },
     },
     {

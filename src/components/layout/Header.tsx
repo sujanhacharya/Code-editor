@@ -9,44 +9,32 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useAppStore } from '@/store';
-import { CppExecutionService } from '@/utils/execution';
 
 export function Header() {
   const {
     isRunning,
-    setIsRunning,
     getActiveFile,
-    addOutput,
     setSettingsOpen,
     toggleTerminal,
-    stdin,
   } = useAppStore();
 
   const [runState, setRunState] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
 
+  // Delegates to the single store action so RUN behaves identically whether it
+  // is triggered here, by Cmd+Enter in Monaco, or from the command palette —
+  // including opening the output panel without resetting its height.
   const handleRun = useCallback(async () => {
-    const file = getActiveFile();
-    if (!file || isRunning) return;
+    if (isRunning) return;
 
-    setIsRunning(true);
     setRunState('running');
+    await useAppStore.getState().runCode();
 
-    const result = await CppExecutionService.execute(file.content, stdin);
-
-    const entry = {
-      id: Math.random().toString(36).substring(2, 10),
-      timestamp: Date.now(),
-      command: `./${file.name.replace('.cpp', '')}`,
-      result,
-      status: result.exitCode === 0 ? 'success' as const : 'error' as const,
-    };
-
-    addOutput(entry);
-    setIsRunning(false);
-    setRunState(result.exitCode === 0 ? 'success' : 'error');
+    const history = useAppStore.getState().outputHistory;
+    const last = history[history.length - 1];
+    setRunState(last?.result?.phase === 'success' ? 'success' : 'error');
 
     setTimeout(() => setRunState('idle'), 2000);
-  }, [getActiveFile, isRunning, setIsRunning, addOutput, stdin]);
+  }, [isRunning]);
 
   return (
     <header

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '@/store';
 import { applyTheme } from '@/utils/theme';
@@ -16,56 +16,49 @@ import { SettingsPanel } from '@/components/ui/SettingsPanel';
 import { BootAnimation } from '@/components/ui/BootAnimation';
 import { Scene3D } from '@/components/three/Scene3D';
 import { CSSBackground } from '@/components/three/CSSBackground';
+import {
+  TERMINAL_COLLAPSED_HEIGHT,
+  TERMINAL_MIN_HEIGHT,
+  getTerminalMaxHeight,
+} from '@/utils/terminalGeometry';
 
 export default function App() {
   const {
     theme,
     layout,
     bootComplete,
+    isTerminalResizing,
     setExplorerWidth,
     setTerminalHeight,
-    toggleTerminal,
+    maximizeTerminal,
+    setTerminalResizing,
+    syncTerminalToViewport,
   } = useAppStore();
-
-  const [mounted, setMounted] = useState(false);
 
   // Apply theme on mount and changes
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
 
-  // Mark mounted after boot
-  useEffect(() => {
-    if (bootComplete) {
-      setMounted(true);
-    }
-  }, [bootComplete]);
-
   useKeyboardShortcuts();
 
-  // Handle run event from editor keyboard shortcut
+  // Run requests from Monaco (Cmd+Enter) and the command palette funnel through
+  // the single store action so RUN behaves identically everywhere.
   useEffect(() => {
-    const handler = async () => {
-      const state = useAppStore.getState();
-      const file = state.getActiveFile();
-      if (!file || state.isRunning) return;
-
-      state.setIsRunning(true);
-      const { CppExecutionService } = await import('@/utils/execution');
-      const result = await CppExecutionService.execute(file.content, state.stdin);
-      state.addOutput({
-        id: Math.random().toString(36).substring(2, 10),
-        timestamp: Date.now(),
-        command: `./${file.name.replace('.cpp', '')}`,
-        result,
-        status: result.exitCode === 0 ? 'success' : 'error',
-      });
-      state.setIsRunning(false);
+    const handler = () => {
+      void useAppStore.getState().runCode();
     };
-
     window.addEventListener('run-cpp', handler);
-    return () => window.removeEventListener('run-cpp', handler as EventListener);
+    return () => window.removeEventListener('run-cpp', handler);
   }, []);
+
+  // Keep the terminal within bounds when the window is resized. This is what
+  // makes the height responsive instead of permanently fixed.
+  useEffect(() => {
+    const onResize = () => syncTerminalToViewport();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [syncTerminalToViewport]);
 
   const handleTerminalResize = useCallback(
     (size: number) => {
@@ -80,6 +73,16 @@ export default function App() {
     },
     [setExplorerWidth]
   );
+
+  const isCollapsed = layout.terminalCollapsed;
+
+  // The rendered height: collapsed shows only the tab bar, otherwise the
+  // user's chosen (already clamped) height.
+  const terminalHeight = isCollapsed
+    ? TERMINAL_COLLAPSED_HEIGHT
+    : layout.terminalHeight;
+
+  const terminalMaxSize = getTerminalMaxHeight();
 
   return (
     <>
@@ -135,6 +138,10 @@ export default function App() {
                   display: 'flex',
                   flexDirection: 'column',
                   overflow: 'hidden',
+                  // Allows the editor row to shrink as the terminal grows,
+                  // instead of overflowing and forcing page-level scroll.
+                  minWidth: 0,
+                  minHeight: 0,
                 }}
               >
                 {/* Editor + Explorer */}
@@ -143,6 +150,8 @@ export default function App() {
                     flex: 1,
                     display: 'flex',
                     overflow: 'hidden',
+                    minWidth: 0,
+                    minHeight: 0,
                   }}
                 >
                   {/* Explorer */}
@@ -178,6 +187,8 @@ export default function App() {
                       flex: 1,
                       overflow: 'hidden',
                       position: 'relative',
+                      minWidth: 0,
+                      minHeight: 0,
                     }}
                   >
                     <CodeEditor />
@@ -189,9 +200,11 @@ export default function App() {
                   {layout.terminalOpen && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: layout.terminalHeight, opacity: 1 }}
+                      animate={{ height: terminalHeight, opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      // Animate open/close and maximize, but follow the pointer
+                      // instantly while dragging so the resize feels direct.
+                      transition={{ duration: isTerminalResizing ? 0 : 0.2 }}
                       style={{
                         overflow: 'hidden',
                         flexShrink: 0,
@@ -199,10 +212,17 @@ export default function App() {
                     >
                       <ResizablePanel
                         direction="vertical"
+                        handleEdge="start"
                         size={layout.terminalHeight}
-                        minSize={100}
-                        maxSize={500}
+                        minSize={TERMINAL_MIN_HEIGHT}
+                        maxSize={terminalMaxSize}
                         onResize={handleTerminalResize}
+                        onHandleDoubleClick={maximizeTerminal}
+                        onResizeStateChange={setTerminalResizing}
+                        // While collapsed the panel is only a tab bar, but its
+                        // stored size is still ~320px; keeping the handle live
+                        // would make the first drag pixel snap it wide open.
+                        collapsed={isCollapsed}
                       >
                         <OutputPanel />
                       </ResizablePanel>
