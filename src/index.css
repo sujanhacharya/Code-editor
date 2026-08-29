@@ -215,6 +215,14 @@ button {
   outline: none;
 }
 
+/* `outline: none` above hides focus for keyboard users too, which left the
+   toolbar buttons tabbable but invisible to navigate. :focus-visible only
+   matches keyboard focus, so mouse clicks look exactly as before. */
+button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 a {
   color: inherit;
   text-decoration: none;

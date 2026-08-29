@@ -221,6 +221,22 @@ export function CodeEditor() {
   }, []);
 
   /**
+   * Publish a read-only view of the live model so "Download" writes out exactly
+   * what is on screen. The getter reads editorRef lazily, so registering before
+   * Monaco has finished mounting is fine.
+   *
+   * Re-registered on file switch so the text can always be matched to the file
+   * it belongs to.
+   */
+  useEffect(
+    () =>
+      registerEditorValueGetter(activeFileId, () =>
+        editorRef.current?.getModel()?.getValue()
+      ),
+    [activeFileId]
+  );
+
+  /**
    * Jump to a compiler diagnostic (PROBLEMS tab click).
    *
    * This moves the cursor and reveals the line on the EXISTING editor instance.

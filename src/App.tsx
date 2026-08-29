@@ -13,6 +13,7 @@ import { ThemeSelector } from '@/components/themes/ThemeSelector';
 import { ThemeTransition } from '@/components/themes/ThemeTransition';
 import { CommandPalette } from '@/components/ui/CommandPalette';
 import { SettingsPanel } from '@/components/ui/SettingsPanel';
+import { Toast } from '@/components/ui/Toast';
 import { BootAnimation } from '@/components/ui/BootAnimation';
 import { Scene3D } from '@/components/three/Scene3D';
 import { CSSBackground } from '@/components/three/CSSBackground';
@@ -274,6 +275,7 @@ export default function App() {
           <ThemeTransition />
           <CommandPalette />
           <SettingsPanel />
+          <Toast />
         </>
       )}
     </>

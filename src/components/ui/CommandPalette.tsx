@@ -11,8 +11,11 @@ import {
   WrapText,
   Map,
   Hash,
+  Download,
 } from 'lucide-react';
 import { useAppStore } from '@/store';
+import { downloadActiveCppFile } from '@/utils/download';
+import { showToast } from '@/utils/toast';
 
 interface Command {
   id: string;
@@ -63,6 +66,21 @@ export function CommandPalette() {
       action: () => {
         createFile('untitled.cpp');
         setCommandPaletteOpen(false);
+      },
+    },
+    {
+      id: 'download-cpp',
+      label: 'Download C++ File',
+      icon: <Download size={14} />,
+      category: 'Files',
+      action: () => {
+        setCommandPaletteOpen(false);
+        // Exactly the same code path as the header button — one implementation.
+        // The header disables itself when there is no active file; here the
+        // command is always listed, so say why nothing happened.
+        if (downloadActiveCppFile() === null) {
+          showToast('Download unavailable — no active file');
+        }
       },
     },
     {

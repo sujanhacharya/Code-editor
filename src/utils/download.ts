@@ -24,7 +24,8 @@ const CPP_EXTENSIONS = [
 
 /** `main` -> `main.cpp`; `main.cpp` -> `main.cpp`; empty -> `main.cpp`. */
 export function toCppFileName(rawName: string | null | undefined): string {
-  const name = (rawName ?? '').trim();
+  // Trailing dots would otherwise produce "main..cpp".
+  const name = (rawName ?? '').trim().replace(/\.+$/, '');
   if (!name) return 'main.cpp';
 
   const lower = name.toLowerCase();
@@ -36,11 +37,17 @@ export function toCppFileName(rawName: string | null | undefined): string {
 /**
  * Writes `contents` to the user's downloads as `fileName`.
  *
- * A Blob built from a JS string is encoded as UTF-8, and the charset is stated
- * explicitly so multi-byte literals (e.g. "Hello 世界") survive intact.
+ * A Blob built from a JS string is always encoded as UTF-8, so multi-byte
+ * literals (e.g. "Hello 世界") reach the disk intact regardless of the MIME type.
+ *
+ * The type is deliberately octet-stream rather than something like `text/plain`
+ * or `text/x-c++src`: when a browser recognises the MIME type it may append its
+ * own preferred extension, which is how "main.cpp" ends up saved as
+ * "main.cpp.txt". octet-stream has no preferred extension, so the name we ask
+ * for is the name the user gets.
  */
 export function downloadTextFile(fileName: string, contents: string): void {
-  const blob = new Blob([contents], { type: 'text/x-c++src;charset=utf-8' });
+  const blob = new Blob([contents], { type: 'application/octet-stream' });
   const url = URL.createObjectURL(blob);
 
   const anchor = document.createElement('a');
@@ -53,9 +60,11 @@ export function downloadTextFile(fileName: string, contents: string): void {
   anchor.click();
   document.body.removeChild(anchor);
 
-  // Revoked on the next tick: some browsers still need the URL alive while the
-  // click is being processed.
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+  // Chromium and Firefox begin the transfer synchronously inside click(), but
+  // Safari's is asynchronous — revoking on the next tick there produces an
+  // empty or aborted download. A few seconds costs nothing (the blob is a few
+  // KB of source) and is safe everywhere.
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
 /**
@@ -71,7 +80,7 @@ export function getActiveSourceForDownload(): { name: string; content: string } 
   const file = state.files.find((f) => f.id === state.activeFileId);
   if (!file) return null;
 
-  const live = getLiveEditorValue();
+  const live = getLiveEditorValue(file.id);
 
   return {
     name: toCppFileName(file.name),

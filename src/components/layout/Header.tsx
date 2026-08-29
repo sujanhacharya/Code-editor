@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Play,
@@ -23,6 +23,7 @@ export function Header() {
 
   const [runState, setRunState] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
   const [justDownloaded, setJustDownloaded] = useState(false);
+  const downloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Delegates to the single store action so RUN behaves identically whether it
   // is triggered here, by Cmd+Enter in Monaco, or from the command palette —
@@ -46,8 +47,18 @@ export function Header() {
     const name = downloadActiveCppFile();
     if (!name) return;
     setJustDownloaded(true);
-    setTimeout(() => setJustDownloaded(false), 1400);
+    // Restart the timer on a rapid second click, so the tick is shown for its
+    // full duration rather than being cut short by the earlier timeout.
+    if (downloadTimer.current !== null) clearTimeout(downloadTimer.current);
+    downloadTimer.current = setTimeout(() => setJustDownloaded(false), 1400);
   }, []);
+
+  useEffect(
+    () => () => {
+      if (downloadTimer.current !== null) clearTimeout(downloadTimer.current);
+    },
+    []
+  );
 
   const activeFile = getActiveFile();
 
@@ -246,6 +257,7 @@ function HeaderButton({
       whileTap={disabled ? undefined : { scale: 0.95 }}
       onClick={onClick}
       disabled={disabled}
+      type="button"
       title={label}
       aria-label={ariaLabel ?? label}
       style={{
